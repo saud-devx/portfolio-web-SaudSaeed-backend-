@@ -1,28 +1,27 @@
+// utils/seedAdmin.js
 require('dotenv').config();
 const mongoose = require('mongoose');
-const { connectDB } = require('../config/db');
-const User = require('../models/User');
+const User = require('../models/User'); // adjust
+const bcrypt = require('bcrypt');
 
-const seed = async () => {
-  await connectDB();
-  const email = process.env.ADMIN_EMAIL;
-  const pass = process.env.ADMIN_PASSWORD;
-  if (!email || !pass) {
-    console.error('ADMIN_EMAIL and ADMIN_PASSWORD required in env');
+const run = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+    const email = process.env.ADMIN_EMAIL || 'stuartrobinson928@gmail.com';
+    const pass = process.env.ADMIN_PASSWORD || 'password@123';
+    const existing = await User.findOne({ email });
+    if (existing) {
+      console.log('Admin already exists:', email);
+      process.exit(0);
+    }
+    const hashed = await bcrypt.hash(pass, 10);
+    const user = await User.create({ name: 'Admin', email, password: hashed, isAdmin: true });
+    console.log('Created admin:', user.email);
+    process.exit(0);
+  } catch (err) {
+    console.error(err);
     process.exit(1);
   }
-  const exists = await User.findOne({ email });
-  if (exists) {
-    console.log('Admin already exists');
-    process.exit(0);
-  }
-  const user = new User({ name: 'Admin', email, password: pass, role: 'admin' });
-  await user.save();
-  console.log('Admin created:', email);
-  process.exit(0);
 };
 
-seed().catch(err => {
-  console.error(err);
-  process.exit(1);
-});
+run();

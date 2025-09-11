@@ -1,27 +1,29 @@
+// middleware/auth.js
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-const auth = {};
-
-auth.protect = async (req, res, next) => {
-  const header = req.headers.authorization;
-  if (!header || !header.startsWith('Bearer ')) return res.status(401).json({ message: 'Not authorized' });
-  const token = header.split(' ')[1];
+const authRequired = async (req, res, next) => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id).select('-password');
+    const auth = req.headers.authorization;
+    if (!auth || !auth.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+    const token = auth.split(' ')[1];
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(payload.id).select('-password');
     if (!user) return res.status(401).json({ message: 'Invalid token' });
     req.user = user;
     next();
   } catch (err) {
-    return res.status(401).json({ message: 'Token invalid or expired' });
+    res.status(401).json({ message: 'Authentication failed', error: err.message });
   }
 };
 
-auth.admin = (req, res, next) => {
-  if (!req.user) return res.status(401).json({ message: 'Not authenticated' });
-  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Admin access required' });
+const adminOnly = (req, res, next) => {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Admin access required' });
+  }
   next();
 };
 
-module.exports = auth;
+module.exports = { authRequired, adminOnly };

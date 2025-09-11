@@ -33,6 +33,16 @@ app.use('/api/v1/uploads', uploadRoutes);
 app.use('/api/v1/messages', msgRoutes);
 app.use('/api/v1/settings', settingsRoutes);
 
+// admin routes 
+
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+
+// mount admin routes
+app.use('/api/v1/admin/experiences', require('./routes/admin/experiences'));
+app.use('/api/v1/admin/projects', require('./routes/admin/projects'));
+app.use('/api/v1/admin/settings', require('./routes/admin/settings'));
+app.use('/api/v1/admin/uploads', require('./routes/admin/uploads'));
+
 // health
 app.get('/api/v1/health', (req, res) => res.json({ ok: true, time: new Date() }));
 

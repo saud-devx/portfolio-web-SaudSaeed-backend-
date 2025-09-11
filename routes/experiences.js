@@ -1,13 +1,22 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const ctrl = require('../controllers/experienceController');
-const { protect, admin } = require('../middleware/auth');
+const {
+  getExperiences,
+  getExperience,
+  createExperience,
+  updateExperience,
+  deleteExperience,
+} = require("../controllers/experienceController");
 
-router.get('/', ctrl.list);
-router.get('/:id', ctrl.get);
-router.post('/', protect, admin, ctrl.create);
-router.patch('/:id', protect, admin, ctrl.update);
-router.delete('/:id', protect, admin, ctrl.remove);
-router.post('/reorder', protect, admin, ctrl.reorder);
+const { authRequired, adminOnly } = require("../middleware/auth");
+
+// Public
+router.get("/", getExperiences);
+router.get("/:id", getExperience);
+
+// Admin-only
+router.post("/", authRequired, adminOnly, createExperience);
+router.put("/:id", authRequired, adminOnly, updateExperience);
+router.delete("/:id", authRequired, adminOnly, deleteExperience);
 
 module.exports = router;
