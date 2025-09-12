@@ -26,4 +26,10 @@ const adminOnly = (req, res, next) => {
   next();
 };
 
-module.exports = { authRequired, adminOnly };
+module.exports = {
+  authRequired,
+  adminOnly,
+  // backward-compatible aliases used by some route files:
+  protect: authRequired,
+  admin: adminOnly
+};
