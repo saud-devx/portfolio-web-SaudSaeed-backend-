@@ -1,9 +1,9 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require("cors");
 const path = require('path');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const cors = require('cors');
 const { connectDB } = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -17,6 +17,15 @@ const settingsRoutes = require('./routes/settings');
 const app = express();
 connectDB();
 
+// Allow frontend (Vite) on localhost:5173
+app.use(
+  cors({
+    origin: ["http://localhost:5173","https://portfolio-web-saud-saeed.vercel.app","http://localhost:8080"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true
+  })
+);
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
@@ -48,6 +57,7 @@ app.get('/api/v1/health', (req, res) => res.json({ ok: true, time: new Date() })
 
 // error handler
 app.use(errorHandler);
+app.options("*", cors());
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
