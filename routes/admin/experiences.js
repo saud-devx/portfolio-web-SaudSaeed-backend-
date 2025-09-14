@@ -58,5 +58,24 @@ router.post('/reorder', authRequired, adminOnly, async (req, res) => {
     res.status(500).json({ message: 'Reorder failed', error: err.message });
   }
 });
+router.get('/', authRequired, adminOnly, async (req, res) => {
+  try {
+    const exps = await Experience.find().sort({ sort: 1, createdAt: -1 }); // sorted if you have a "sort" field
+    res.json(exps);
+  } catch (err) {
+    res.status(500).json({ message: 'Fetch failed', error: err.message });
+  }
+});
+
+// Get one experience by ID
+router.get('/:id', authRequired, adminOnly, async (req, res) => {
+  try {
+    const exp = await Experience.findById(req.params.id);
+    if (!exp) return res.status(404).json({ message: 'Not found' });
+    res.json(exp);
+  } catch (err) {
+    res.status(500).json({ message: 'Fetch failed', error: err.message });
+  }
+});
 
 module.exports = router;
