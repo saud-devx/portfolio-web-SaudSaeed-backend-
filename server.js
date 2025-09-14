@@ -26,8 +26,8 @@ app.use(
     credentials: true
   })
 );
-app.use(helmet());
 app.use(cors());
+app.use(helmet());
 app.use(express.json());
 app.use(morgan('dev'));
 
