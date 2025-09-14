@@ -5,13 +5,29 @@ const User = require('../models/User');
 const authRequired = async (req, res, next) => {
   try {
     const auth = req.headers.authorization;
-    if (!auth || !auth.startsWith('Bearer ')) {
+    if (!auth || !auth.startsWith('Bearer '))
       return res.status(401).json({ message: 'No token provided' });
-    }
+
     const token = auth.split(' ')[1];
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
+
+    let payload;
+    try {
+      payload = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({ message: 'Token expired' });
+      }
+      return res.status(401).json({ message: 'Authentication failed', error: err.message });
+    }
+
     const user = await User.findById(payload.id).select('-password');
     if (!user) return res.status(401).json({ message: 'Invalid token' });
+
+    // Enforce single session: token.sessionId must match user.currentSession
+    if (!payload.sessionId || user.currentSession !== payload.sessionId) {
+      return res.status(401).json({ message: 'Session invalid or logged in elsewhere' });
+    }
+
     req.user = user;
     next();
   } catch (err) {
@@ -26,10 +42,4 @@ const adminOnly = (req, res, next) => {
   next();
 };
 
-module.exports = {
-  authRequired,
-  adminOnly,
-  // backward-compatible aliases used by some route files:
-  protect: authRequired,
-  admin: adminOnly
-};
+module.exports = { authRequired, adminOnly, protect: authRequired, admin: adminOnly };

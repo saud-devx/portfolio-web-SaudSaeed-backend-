@@ -17,24 +17,28 @@ const settingsRoutes = require('./routes/settings');
 const app = express();
 connectDB();
 
-// Allow frontend (Vite) on localhost:5173
+// Allow frontend (local + deployed)
 app.use(
   cors({
-    origin: ["http://localhost:5173","https://portfolio-web-saud-saeed.vercel.app","http://localhost:8080"],
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:8080",
+      "https://portfolio-web-saud-saeed.vercel.app"
+    ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true
   })
 );
-app.use(cors());
+
 app.use(helmet());
 app.use(express.json());
 app.use(morgan('dev'));
 
-// serve uploaded static files (only for local/simple hosting)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// serve uploaded static files
+app.use('/api/v1/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
-// routes
+// normal routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/experiences', expRoutes);
 app.use('/api/v1/projects', projRoutes);
@@ -42,18 +46,16 @@ app.use('/api/v1/uploads', uploadRoutes);
 app.use('/api/v1/messages', msgRoutes);
 app.use('/api/v1/settings', settingsRoutes);
 
-// admin routes 
-
-app.use('/api/v1/uploads', express.static(path.join(__dirname, 'public/uploads')));
-
-// mount admin routes
+// admin routes
 app.use('/api/v1/admin/experiences', require('./routes/admin/experiences'));
 app.use('/api/v1/admin/projects', require('./routes/admin/projects'));
 app.use('/api/v1/admin/settings', require('./routes/admin/settings'));
 app.use('/api/v1/admin/uploads', require('./routes/admin/uploads'));
 
 // health
-app.get('/api/v1/health', (req, res) => res.json({ ok: true, time: new Date() }));
+app.get('/api/v1/health', (req, res) =>
+  res.json({ ok: true, time: new Date() })
+);
 
 // error handler
 app.use(errorHandler);

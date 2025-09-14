@@ -1,3 +1,4 @@
+// models/User.js
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
@@ -11,6 +12,8 @@ const UserSchema = new mongoose.Schema(
       enum: ['admin', 'editor', 'user'],
       default: 'admin',
     },
+    // single device session enforcement
+    currentSession: { type: String, default: null },
   },
   { timestamps: true }
 );
