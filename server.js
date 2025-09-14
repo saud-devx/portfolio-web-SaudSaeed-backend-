@@ -44,7 +44,7 @@ app.use('/api/v1/settings', settingsRoutes);
 
 // admin routes 
 
-app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+app.use('/api/v1/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // mount admin routes
 app.use('/api/v1/admin/experiences', require('./routes/admin/experiences'));
