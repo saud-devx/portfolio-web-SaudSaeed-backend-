@@ -1,6 +1,6 @@
 // controllers/authController.js
 const jwt = require('jsonwebtoken');
-const { v4: uuidv4 } = require('uuid');
+const { uuid } = require('uuidv4');
 const User = require('../models/User');
 
 const signToken = (payload) =>
@@ -21,6 +21,7 @@ exports.login = async (req, res, next) => {
 
     // create a one-time session id and save to user
     const sessionId = uuidv4();
+    
     user.currentSession = sessionId;
     await user.save();
 
