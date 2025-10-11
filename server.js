@@ -26,7 +26,7 @@ app.use(
       "https://portfolio-web-saud-saeed.vercel.app"
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "admin-password"],
     credentials: true
   })
 );
