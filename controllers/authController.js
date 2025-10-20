@@ -2,7 +2,7 @@
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');   
 const User = require('../models/User');
-console.log("UUID test:", uuidv4());
+console.log("UUID test::", uuidv4());
 
 const signToken = (payload) =>
   jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
