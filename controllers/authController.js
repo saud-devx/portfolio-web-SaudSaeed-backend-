@@ -1,8 +1,10 @@
 // controllers/authController.js
 const jwt = require('jsonwebtoken');
-const { v4: uuidv4 } = require('uuid');   
+const { v4: uuidv4 } = require('uuid');
 const User = require('../models/User');
-console.log("UUID test::", uuidv4());
+
+// Quick check to confirm uuid is loaded correctly
+console.log('UUID test:', uuidv4());
 
 const signToken = (payload) =>
   jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
@@ -11,6 +13,7 @@ const signToken = (payload) =>
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+
     if (!email || !password) {
       return res.status(400).json({ message: 'Provide email and password' });
     }
@@ -25,9 +28,8 @@ exports.login = async (req, res, next) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // create a one-time session id and save to user
+    // Create a one-time session ID and save to user
     const sessionId = uuidv4();
-
     user.currentSession = sessionId;
     await user.save();
 
@@ -52,16 +54,27 @@ exports.login = async (req, res, next) => {
 };
 
 // POST /api/v1/auth/logout
-exports.logout = async (req, res, next) => {
+exports.logout = async (req, res) => {
   try {
-    const userId = req.user && req.user._id;
-    if (!userId) {
-      return res.status(400).json({ message: 'Not logged in' });
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ message: 'No token provided' });
     }
 
-    await User.findByIdAndUpdate(userId, { currentSession: null });
-    res.json({ message: 'Logged out' });
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: 'Invalid token format' });
+    }
+
+    // Optional: clear session if stored in DB
+    const userId = req.user && req.user._id;
+    if (userId) {
+      await User.findByIdAndUpdate(userId, { currentSession: null });
+    }
+
+    // Frontend will remove token from localStorage or cookies
+    return res.json({ message: 'Logged out successfully' });
   } catch (err) {
-    next(err);
+    res.status(500).json({ message: 'Logout failed', error: err.message });
   }
 };
