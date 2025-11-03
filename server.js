@@ -61,5 +61,25 @@ app.get('/api/v1/health', (req, res) =>
 app.use(errorHandler);
 app.options("*", cors());
 
+// download resume code
+
+
+app.use('/public', express.static(path.join(__dirname, 'public')));
+
+
+app.get('/api/download/resume', (req, res) => {
+  const filePath = path.join(__dirname, 'public', 'Saud-Saeed-Resume.pdf');
+
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', 'attachment; filename="Saud-Saeed-Resume.pdf"');
+
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error('Error sending resume:', err);
+      if (!res.headersSent) res.status(500).send('Could not download the file.');
+    }
+  });
+});
+
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
