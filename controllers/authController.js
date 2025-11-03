@@ -1,34 +1,59 @@
 // controllers/authController.js
-const jwt = require('jsonwebtoken');
-const { v4: uuidv4 } = require('uuid');
-const User = require('../models/User');
+const jwt = require("jsonwebtoken");
+const { v4: uuidv4 } = require("uuid");
+const User = require("../models/User");
 
-// Quick check to confirm uuid is loaded correctly
-console.log('UUID test:', uuidv4());
-
+// Helper function to sign a JWT
 const signToken = (payload) =>
-  jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
+  jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "7d" });
+
+// Middleware: Protect Route
+exports.protect = async (req, res, next) => {
+  try {
+    let token;
+    const authHeader = req.headers.authorization;
+
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.split(" ")[1];
+    }
+
+    if (!token) {
+      return res.status(401).json({ message: "Not authorized, no token" });
+    }
+
+    // Verify JWT
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    // Check session match
+    if (user.currentSession !== decoded.sessionId) {
+      return res.status(401).json({ message: "Session expired" });
+    }
+
+    req.user = user;
+    next();
+  } catch (err) {
+    console.error("Auth error:", err.message);
+    res.status(401).json({ message: "Authentication failed", error: err.message });
+  }
+};
 
 // POST /api/v1/auth/login
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Provide email and password' });
-    }
+    if (!email || !password)
+      return res.status(400).json({ message: "Provide email and password" });
 
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
+    if (!user || !(await user.matchPassword(password)))
+      return res.status(401).json({ message: "Invalid credentials" });
 
-    const match = await user.matchPassword(password);
-    if (!match) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
-
-    // Create a one-time session ID and save to user
     const sessionId = uuidv4();
     user.currentSession = sessionId;
     await user.save();
@@ -53,28 +78,19 @@ exports.login = async (req, res, next) => {
   }
 };
 
-// POST /api/v1/auth/logout
-exports.logout = async (req, res) => {
+// ✅ POST /api/v1/auth/logout
+exports.logout = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({ message: 'No token provided' });
+    const user = req.user;
+    if (!user) {
+      return res.status(400).json({ message: "Not logged in" });
     }
 
-    const token = authHeader.split(' ')[1];
-    if (!token) {
-      return res.status(401).json({ message: 'Invalid token format' });
-    }
+    user.currentSession = null;
+    await user.save();
 
-    // Optional: clear session if stored in DB
-    const userId = req.user && req.user._id;
-    if (userId) {
-      await User.findByIdAndUpdate(userId, { currentSession: null });
-    }
-
-    // Frontend will remove token from localStorage or cookies
-    return res.json({ message: 'Logged out successfully' });
+    res.json({ message: "Logged out successfully" });
   } catch (err) {
-    res.status(500).json({ message: 'Logout failed', error: err.message });
+    next(err);
   }
 };

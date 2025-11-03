@@ -1,13 +1,8 @@
-// routes/auth.js
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { login, logout } = require('../controllers/authController');
-const { authRequired } = require('../middleware/auth');
+const { login, logout, protect } = require("../controllers/authController");
 
-// login (public)
-router.post('/login', login);
-
-// logout (requires valid token + session)
-router.post('/logout', authRequired, logout);
+router.post("/login", login);
+router.post("/logout", protect, logout);
 
 module.exports = router;
