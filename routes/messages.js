@@ -9,5 +9,6 @@ router.get('/', protect, admin, ctrl.list);
 router.get('/:id', protect, admin, ctrl.get);
 router.patch('/:id', protect, admin, ctrl.update);
 router.delete('/:id', protect, admin, ctrl.remove);
+console.log('messages updated code.');
 
 module.exports = router;
