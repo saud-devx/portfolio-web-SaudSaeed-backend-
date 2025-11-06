@@ -14,6 +14,7 @@ exports.create = async (req, res, next) => {
     res.status(201).json(doc);
   } catch (err) {
     console.error("Email failed:", err);
+    
     next(err);
   }
 
