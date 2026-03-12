@@ -53,5 +53,10 @@ exports.sendOTPEmail = async ({ email, otp }) => {
     `,
   };
 
-  await transporter.sendMail(mailOptions);
+  try {
+    await transporter.sendMail(mailOptions);
+  } catch (err) {
+    console.error("Error sending OTP email:", err.message);
+    throw new Error("SMTP_ERROR: Could not send OTP email");
+  }
 };
