@@ -42,8 +42,8 @@ exports.protect = async (req, res, next) => {
   }
 };
 
-// POST /api/v1/auth/login
-exports.login = async (req, res, next) => {
+// POST /api/v1/auth/send-otp
+exports.sendOtp = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -54,6 +54,44 @@ exports.login = async (req, res, next) => {
     if (!user || !(await user.matchPassword(password)))
       return res.status(401).json({ message: "Invalid credentials" });
 
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    user.otp = otp;
+    user.otpExpires = otpExpires;
+    await user.save();
+
+    // Send the OTP via email
+    const { sendOTPEmail } = require("../helpers/sendEmail");
+    await sendOTPEmail({ email: user.email, otp });
+
+    res.json({ message: "OTP sent to your email" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /api/v1/auth/verify-otp
+exports.verifyOtp = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp)
+      return res.status(400).json({ message: "Provide email and otp" });
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(401).json({ message: "Invalid credentials" });
+
+    if (!user.otp || user.otp !== otp || user.otpExpires < new Date()) {
+      return res.status(401).json({ message: "Invalid or expired OTP" });
+    }
+
+    // OTP is valid
+    user.otp = null;
+    user.otpExpires = null;
+    
+    // Create new session
     const sessionId = uuidv4();
     user.currentSession = sessionId;
     await user.save();

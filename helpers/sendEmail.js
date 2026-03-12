@@ -28,3 +28,23 @@ exports.sendAlertEmail = async ({ name, email, subject, message }) => {
 
   await transporter.sendMail(mailOptions);
 };
+exports.sendOTPEmail = async ({ email, otp }) => {
+  const mailOptions = {
+    from: `"Portfolio Admin" <${process.env.ALERT_EMAIL}>`,
+    to: email,
+    subject: `Your Admin Login OTP Code`,
+    html: `
+      <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 8px; max-width: 400px; margin: auto;">
+        <h2 style="color: #333; text-align: center;">Admin Login Code</h2>
+        <p style="color: #555; font-size: 16px;">Hello,</p>
+        <p style="color: #555; font-size: 16px;">Use the following OTP to log into the Admin panel. This code is valid for 10 minutes.</p>
+        <div style="background: #f4f4f4; padding: 15px; font-size: 24px; font-weight: bold; text-align: center; letter-spacing: 5px; border-radius: 6px;">
+          ${otp}
+        </div>
+        <p style="color: #888; font-size: 12px; margin-top: 20px; text-align: center;">If you did not request this, please ignore this email.</p>
+      </div>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+};

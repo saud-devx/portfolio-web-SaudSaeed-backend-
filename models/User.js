@@ -14,6 +14,8 @@ const UserSchema = new mongoose.Schema(
     },
     // single device session enforcement
     currentSession: { type: String, default: null },
+    otp: { type: String, default: null },
+    otpExpires: { type: Date, default: null },
   },
   { timestamps: true }
 );
