@@ -63,8 +63,16 @@ exports.sendOtp = async (req, res, next) => {
     await user.save();
 
     // Send the OTP via email
-    const { sendOTPEmail } = require("../helpers/sendEmail");
-    await sendOTPEmail({ email: user.email, otp });
+    try {
+      const { sendOTPEmail } = require("../helpers/sendEmail");
+      await sendOTPEmail({ email: user.email, otp });
+    } catch (emailErr) {
+      console.error("OTP Email failed:", emailErr.message);
+      return res.status(500).json({ 
+        message: "Failed to send OTP email. Please check server logs or email configuration.",
+        error: emailErr.message 
+      });
+    }
 
     res.json({ message: "OTP sent to your email" });
   } catch (err) {

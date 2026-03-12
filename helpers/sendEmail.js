@@ -6,6 +6,8 @@ const transporter = nodemailer.createTransport({
     user: process.env.ALERT_EMAIL,
     pass: process.env.ALERT_EMAIL_PASS,
   },
+  connectionTimeout: 5000, // 5 seconds
+  greetingTimeout: 5000,   // 5 seconds
 });
 
 exports.sendAlertEmail = async ({ name, email, subject, message }) => {
@@ -26,7 +28,12 @@ exports.sendAlertEmail = async ({ name, email, subject, message }) => {
     `,
   };
 
-  await transporter.sendMail(mailOptions);
+  try {
+    await transporter.sendMail(mailOptions);
+  } catch (err) {
+    console.error("Error sending alert email:", err.message);
+    throw new Error("Failed to send alert email");
+  }
 };
 exports.sendOTPEmail = async ({ email, otp }) => {
   const mailOptions = {
