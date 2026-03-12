@@ -23,7 +23,8 @@ app.use(
     origin: [
       "http://localhost:5173",
       "http://localhost:8080",
-      "https://portfolio-web-saud-saeed.vercel.app"
+      "https://portfolio-web-saud-saeed.vercel.app",
+      "https://admin-panal-portfolio-saud-saeed.vercel.app"
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "admin-password"],
