@@ -1,15 +1,20 @@
 const nodemailer = require("nodemailer");
 
+/**
+ * Keep this transporter config aligned with `test-email.js`.
+ * Using `service: "gmail"` is usually more reliable across environments than
+ * hardcoding host/ports, and avoids SSL/port differences between local and live.
+ */
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true, // Use SSL
+  service: "gmail",
   auth: {
     user: process.env.ALERT_EMAIL,
     pass: process.env.ALERT_EMAIL_PASS,
   },
-  connectionTimeout: 5000, // 5 seconds
-  greetingTimeout: 5000,   // 5 seconds
+  // Live hosts can have slower SMTP handshakes; don't fail OTP sends too quickly.
+  connectionTimeout: 20_000,
+  greetingTimeout: 20_000,
+  socketTimeout: 20_000,
 });
 
 exports.sendAlertEmail = async ({ name, email, subject, message }) => {
@@ -34,7 +39,7 @@ exports.sendAlertEmail = async ({ name, email, subject, message }) => {
     await transporter.sendMail(mailOptions);
   } catch (err) {
     console.error("Error sending alert email:", err.message);
-    throw new Error("Failed to send alert email");
+    throw new Error(`Failed to send alert email: ${err.message}`);
   }
 };
 exports.sendOTPEmail = async ({ email, otp }) => {
@@ -59,6 +64,6 @@ exports.sendOTPEmail = async ({ email, otp }) => {
     await transporter.sendMail(mailOptions);
   } catch (err) {
     console.error("Error sending OTP email:", err.message);
-    throw new Error("SMTP_ERROR: Could not send OTP email");
+    throw new Error(`SMTP_ERROR: ${err.message}`);
   }
 };

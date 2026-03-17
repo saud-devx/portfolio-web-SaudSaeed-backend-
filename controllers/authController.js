@@ -67,7 +67,15 @@ exports.sendOtp = async (req, res, next) => {
       const { sendOTPEmail } = require("../helpers/sendEmail");
       await sendOTPEmail({ email: user.email, otp });
     } catch (emailErr) {
-      console.error("OTP Email failed:", emailErr.message);
+      console.error("OTP Email failed:", {
+        message: emailErr?.message,
+        name: emailErr?.name,
+        code: emailErr?.code,
+        command: emailErr?.command,
+        response: emailErr?.response,
+        responseCode: emailErr?.responseCode,
+        stack: emailErr?.stack,
+      });
       return res.status(500).json({ 
         message: "Failed to send OTP email. Please check server logs or email configuration.",
         error: emailErr.message 
