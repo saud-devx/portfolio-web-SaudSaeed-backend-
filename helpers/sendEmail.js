@@ -134,6 +134,6 @@ exports.sendOTPEmail = async ({ email, otp }) => {
     });
   } catch (err) {
     console.error("Error sending OTP email:", err.message);
-    throw new Error(`SMTP_ERROR: ${err.message}`);
+    throw new Error(`EMAIL_ERROR: ${err.message}`);
   }
 };
