@@ -7,29 +7,14 @@ exports.create = async (req, res, next) => {
     const ip = req.ip;
     const doc = await Message.create({ name, email, subject, message, ip });
 
-        // EMAIL ALERT TO YOU
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.ALERT_EMAIL,
-        pass: process.env.ALERT_EMAIL_PASS,
-      },
+    // EMAIL ALERT TO YOU
+    const { sendAlertEmail } = require('../helpers/sendEmail');
+    await sendAlertEmail({
+      name,
+      email,
+      subject,
+      message
     });
-
-        await transporter.sendMail({
-      from: process.env.ALERT_EMAIL,
-      to: process.env.ADMIN_RECEIVE_EMAIL,
-      subject: "📬 New Contact Message",
-      html: `
-        <h3>New message from your portfolio Website</h3>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Subject:</strong> ${subject}</p>
-        <p>${message}</p>
-      `
-    });
-
-    // TODO: send email notification via SendGrid/Nodemailer
     res.status(201).json(doc);
   } catch (err) { next(err); }
 };

@@ -17,16 +17,20 @@ function getFromEmail() {
  * - production: resend
  * - other envs: smtp
  */
-const MAIL_PROVIDER =
-  process.env.MAIL_PROVIDER ||
-  (process.env.NODE_ENV === "production" ? "resend" : "smtp");
+// Auto-switch based on environment
+const MAIL_PROVIDER = process.env.NODE_ENV === "production" ? "resend" : "smtp";
 
 async function sendViaResend({ to, subject, html }) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) throw new Error("RESEND_API_KEY is not set");
 
-  const from = getFromEmail();
+  let from = getFromEmail();
   if (!from) throw new Error("MAIL_FROM (or ALERT_EMAIL) is not set");
+
+  // RESEND requires a verified custom domain. If using a public email, must use onboarding address.
+  if (from.endsWith('@gmail.com') || from.endsWith('@yahoo.com') || from.endsWith('@outlook.com')) {
+    from = 'onboarding@resend.dev';
+  }
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -117,7 +121,7 @@ exports.sendOTPEmail = async ({ email, otp }) => {
       <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 8px; max-width: 400px; margin: auto;">
         <h2 style="color: #333; text-align: center;">Admin Login Code</h2>
         <p style="color: #555; font-size: 16px;">Hello,</p>
-        <p style="color: #555; font-size: 16px;">Use the following OTP to log into the Admin panel. This code is valid for 10 minutes.</p>
+        <p style="color: #555; font-size: 16px;">Use the following OTP to log into the Admin panel. This code is valid for 1 minute.</p>
         <div style="background: #f4f4f4; padding: 15px; font-size: 24px; font-weight: bold; text-align: center; letter-spacing: 5px; border-radius: 6px;">
           ${otp}
         </div>

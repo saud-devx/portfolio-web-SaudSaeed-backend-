@@ -58,8 +58,6 @@ app.get('/api/v1/health', (req, res) =>
   res.json({ ok: true, time: new Date() })
 );
 
-// error handler
-app.use(errorHandler);
 app.options("*", cors());
 
 // download resume code
@@ -81,6 +79,9 @@ app.get('/api/download/resume', (req, res) => {
     }
   });
 });
+
+// error handler must be last
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
